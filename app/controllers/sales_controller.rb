@@ -5,8 +5,8 @@ class SalesController < WebServiceController
   end
 
   def show # Show a single Sale by 'id'
-    id = nil # Hint: look at the 'params' hash
-    sale = Sale.find id
+    # Hint: look at the 'params' hash
+    sale = Sale.find(params[:id])
     render json: sale
   end
 
@@ -14,7 +14,19 @@ class SalesController < WebServiceController
     # Hint: check if your newly created sale is valid
     #       by checking sale.valid? and looking at the
     #       sale.errors array in the debugger
-    sale = Sale.new sale_params
+    sale = Sale.new(sale_params)
+
+    sale.total = sale.items.map do |item|
+      price = Float(item['price'])
+      discount = 0
+
+      if discount_params = item['discount']
+        discount = Float(discount_params['amount'])
+      end
+
+      price - discount
+    end.inject(&:+)
+
     sale.save
 
     render json: sale
